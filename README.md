@@ -1,5 +1,5 @@
 ### Twitbot StatsWiki
-[StatsWiki](https://twitter.com/StatsWiki)
+[@StatsWiki](https://twitter.com/StatsWiki)
 
 #### Cron task
 ```
