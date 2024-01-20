@@ -100,10 +100,14 @@ def get_recent_uploads(user_name):
         for upload in data['query']['allimages']:
             timestamp = upload['timestamp']
             if is_recent_upload(timestamp):
-                title = upload['name'].split('.')[0].replace('_', ' ')
                 page_title = upload['title']
-                url = f"https://commons.wikimedia.org/wiki/{page_title.replace(' ', '_')}"
-                recent_uploads.append((title, url))
+                wiki_content = get_wiki_content(page_title)
+                if '{{Creator:Benoît Prieur}}' in wiki_content:
+                    title = upload['name'].split('.')[0].replace('_', ' ')
+                    url = f"https://commons.wikimedia.org/wiki/{page_title.replace(' ', '_')}"
+                    recent_uploads.append((title, url))
+                else:
+                    print(f"Image {page_title} skipped: Creator tag not found.")
             else:
                 break 
 
@@ -124,4 +128,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
