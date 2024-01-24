@@ -3,7 +3,6 @@ import tweepy
 import requests
 import pytz
 from bs4 import BeautifulSoup
-import os
 
 '''
     get_image_url_from_wikimedia_commons
