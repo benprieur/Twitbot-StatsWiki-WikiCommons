@@ -37,15 +37,6 @@ def tweet_upload_v2(title, url):
     )
 
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-        real_image_url = get_image_url_from_wikimedia_commons(url)
-        response = requests.get(real_image_url, headers=headers)
-        _, ext = os.path.splitext(real_image_url)
-        file_name = f"{title.replace(' ', '_')}{ext}"
-        with open(file_name, 'wb') as file:
-            file.write(response.content)
-
         # Create a tweet
         tweet = f"{title} {url}"
         print(tweet)
