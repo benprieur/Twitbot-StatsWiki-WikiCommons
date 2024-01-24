@@ -24,9 +24,9 @@ def get_image_url_from_wikimedia_commons(page_url):
 '''         
 def tweet_upload_v2(title, url):
     consumer_key = 'XXXXX'
-    consumer_secret = 'XXXXX'
-    access_token = 'XXXXX'
-    access_token_secret = 'XXXXX'
+    consumer_secret = 'YYYYY'
+    access_token = 'ZZZZZ'
+    access_token_secret = 'AAAAA'
 
     client = tweepy.Client(
         consumer_key=consumer_key,
@@ -39,17 +39,10 @@ def tweet_upload_v2(title, url):
         # Create a tweet
         tweet = f"{title} {url}"
         print(tweet)
-        response = client.create_tweet(text=tweet)
-        if response:
-            print("Tweeted:", tweet)
-        else:
-            print("Failed to tweet.")
+        client.create_tweet(text=tweet)
+        print("Tweeted:", tweet)
     except Exception as e: 
         print(e)
-        if response:
-            print("Tweeted:", tweet)
-        else:
-            print("Failed to tweet.")  
 
 
 '''
@@ -68,7 +61,7 @@ def get_wiki_content(page_title):
     try:
         response = requests.get(wiki_api_url, params=wiki_params)
         data = response.json()
-        #print("Response data:", data) 
+        print("Response data:", data) 
         pages = data.get('query', {}).get('pages', {})
         page_id = next(iter(pages), None)
         if page_id and 'revisions' in pages[page_id]:
