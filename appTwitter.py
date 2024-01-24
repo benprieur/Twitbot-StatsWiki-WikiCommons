@@ -3,6 +3,7 @@ import tweepy
 import requests
 import pytz
 from bs4 import BeautifulSoup
+import os
 
 '''
     get_image_url_from_wikimedia_commons
@@ -23,7 +24,6 @@ def get_image_url_from_wikimedia_commons(page_url):
     tweet_upload_v2
 '''         
 def tweet_upload_v2(title, url):
-    # Twitter API v2 User Authentication Credentials
     consumer_key = 'XXXXX'
     consumer_secret = 'XXXXX'
     access_token = 'XXXXX'
@@ -37,9 +37,18 @@ def tweet_upload_v2(title, url):
     )
 
     try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+        real_image_url = get_image_url_from_wikimedia_commons(url)
+        response = requests.get(real_image_url, headers=headers)
+        _, ext = os.path.splitext(real_image_url)
+        file_name = f"{title.replace(' ', '_')}{ext}"
+        with open(file_name, 'wb') as file:
+            file.write(response.content)
+
         # Create a tweet
         tweet = f"{title} {url}"
-        #print(tweet)
+        print(tweet)
         response = client.create_tweet(text=tweet)
         if response:
             print("Tweeted:", tweet)
@@ -47,6 +56,10 @@ def tweet_upload_v2(title, url):
             print("Failed to tweet.")
     except Exception as e: 
         print(e)
+        if response:
+            print("Tweeted:", tweet)
+        else:
+            print("Failed to tweet.")  
 
 
 '''
@@ -93,9 +106,9 @@ def is_recent_upload(timestamp):
     return isRecent
 
 '''
-    get_recent_uploads
+    get_last_upload
 '''
-def get_recent_uploads(user_name):
+def get_last_upload(user_name):
     api_url = 'https://commons.wikimedia.org/w/api.php'
     params = {
         'action': 'query',
@@ -104,14 +117,14 @@ def get_recent_uploads(user_name):
         'aisort': 'timestamp',
         'aiuser': user_name,
         'format': 'json',
-        'ailimit': 10,  
+        'ailimit': 1,  
         'aidir': 'descending'
     }
 
     response = requests.get(api_url, params=params)
     data = response.json()
 
-    recent_uploads = []
+    last_upload = []
     if 'query' in data and 'allimages' in data['query']:
         for upload in data['query']['allimages']:
             timestamp = upload['timestamp']
@@ -121,26 +134,29 @@ def get_recent_uploads(user_name):
                 if '{{Creator:Benoît Prieur}}' in wiki_content:
                     title = upload['name'].split('.')[0].replace('_', ' ')
                     url = f"https://commons.wikimedia.org/wiki/{page_title.replace(' ', '_')}"
-                    recent_uploads.append((title, url))
+                    
+                    last_upload.append(title)
+                    last_upload.append(url)
                 else:
                     print(f"Image {page_title} skipped: Creator tag not found.")
             else:
                 break 
 
-    return recent_uploads
+    return last_upload
 
 
 '''
     main
 '''
 def main():
-    recent_uploads = get_recent_uploads('Benoît Prieur')
-    
-    if recent_uploads:
-        for title, url in recent_uploads:
-            tweet_upload_v2(title, url)
+    last_upload = get_last_upload('Benoît Prieur')
+    print(last_upload)
+    if last_upload:
+        title = last_upload[0]
+        url = last_upload[1]
+        tweet_upload_v2(title, url)
     else:
-        print("main: no recent uploads to tweet.")
+        print("main: no upload to tweet.")
 
 if __name__ == '__main__':
     main()
