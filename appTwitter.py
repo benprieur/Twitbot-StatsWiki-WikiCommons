@@ -1,4 +1,5 @@
 import datetime
+import time
 import tweepy
 import requests
 import pytz
@@ -23,10 +24,10 @@ def get_image_url_from_wikimedia_commons(page_url):
     tweet_upload_v2
 '''         
 def tweet_upload_v2(title, url):
-    consumer_key = 'XXXXX'
-    consumer_secret = 'YYYYY'
-    access_token = 'ZZZZZ'
-    access_token_secret = 'AAAAA'
+    consumer_key = 'xxxxx'
+    consumer_secret = 'xxxxx'
+    access_token = 'xxxxx'
+    access_token_secret = 'xxxxx'
 
     client = tweepy.Client(
         consumer_key=consumer_key,
@@ -84,14 +85,14 @@ def is_recent_upload(timestamp):
     time_difference = current_time - upload_time
     time_difference = time_difference.total_seconds()
     print(time_difference)
-    isRecent = time_difference <= 60
+    isRecent = time_difference <= 6000
     print(isRecent)
     return isRecent
 
 '''
-    get_last_upload
+    get_last_uploads
 '''
-def get_last_upload(user_name):
+def get_last_uploads(user_name):
     api_url = 'https://commons.wikimedia.org/w/api.php'
     params = {
         'action': 'query',
@@ -100,14 +101,14 @@ def get_last_upload(user_name):
         'aisort': 'timestamp',
         'aiuser': user_name,
         'format': 'json',
-        'ailimit': 1,  
+        'ailimit': 5,  
         'aidir': 'descending'
     }
 
     response = requests.get(api_url, params=params)
     data = response.json()
 
-    last_upload = []
+    recent_uploads = []
     if 'query' in data and 'allimages' in data['query']:
         for upload in data['query']['allimages']:
             timestamp = upload['timestamp']
@@ -117,27 +118,26 @@ def get_last_upload(user_name):
                 if '{{Creator:Benoît Prieur}}' in wiki_content:
                     title = upload['name'].split('.')[0].replace('_', ' ')
                     url = f"https://commons.wikimedia.org/wiki/{page_title.replace(' ', '_')}"
-                    
-                    last_upload.append(title)
-                    last_upload.append(url)
+                    recent_uploads.append((title, url))
                 else:
                     print(f"Image {page_title} skipped: Creator tag not found.")
             else:
                 break 
 
-    return last_upload
+    return recent_uploads
 
 
 '''
     main
 '''
 def main():
-    last_upload = get_last_upload('Benoît Prieur')
-    print(last_upload)
-    if last_upload:
-        title = last_upload[0]
-        url = last_upload[1]
+    recent_uploads = get_last_uploads('Benoît Prieur')
+    print(recent_uploads)
+    for upload in recent_uploads:
+        title = upload[0]
+        url = upload[1]
         tweet_upload_v2(title, url)
+        time.sleep(5)
     else:
         print("main: no upload to tweet.")
 
