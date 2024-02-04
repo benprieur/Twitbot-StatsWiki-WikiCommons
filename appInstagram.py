@@ -5,6 +5,7 @@ import os
 from bs4 import BeautifulSoup
 from instagrapi import Client
 
+
 '''
     get_image_url_from_wikimedia_commons
 '''  
@@ -24,11 +25,10 @@ def get_image_url_from_wikimedia_commons(page_url):
     instagram_upload
 '''  
 def instagram_upload(title, image_url):
-    instagram_username = 'XXXXX'
-    instagram_password = 'XXXXX'
-
     file_name = ""
     try:
+        cl.login(instagram_username, instagram_password)
+
         real_image_url = get_image_url_from_wikimedia_commons(image_url)
         _, ext = os.path.splitext(real_image_url)
         file_name = f"{title.replace(' ', '_')}{ext}"
@@ -36,13 +36,11 @@ def instagram_upload(title, image_url):
         headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
         response = requests.get(real_image_url, headers=headers)
+        print(f"File name: {file_name}")
         with open(file_name, 'wb') as file:
-            file.write(response.content)
-
-        cl = Client()
-        cl.login(instagram_username, instagram_password)
+            file.write(response.content) 
+            
         cl.photo_upload(file_name, title)
-        
         print(f"Posted on Instagram: {title}")
     except Exception as e:
         print(f"Failed to post on Instagram: {e}")
@@ -82,22 +80,25 @@ def get_wiki_content(page_title):
 
 
 '''
-    is_recent_upload
+    is_last_upload
 ''' 
-def is_recent_upload(timestamp):
+def is_last_upload(timestamp):
     current_time = datetime.datetime.now(pytz.utc)
     upload_time = datetime.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=pytz.utc)
+    print(current_time)
+    print(upload_time)
+    
     time_difference = current_time - upload_time
     time_difference = time_difference.total_seconds()
     print(time_difference)
-    isRecent = time_difference <= 60
+    isRecent = time_difference <= 86400
     print(isRecent)
     return isRecent
 
 '''
-    get_recent_uploads
+    get_last_upload
 '''
-def get_recent_uploads(user_name):
+def get_last_upload(user_name):
     api_url = 'https://commons.wikimedia.org/w/api.php'
     params = {
         'action': 'query',
@@ -106,43 +107,49 @@ def get_recent_uploads(user_name):
         'aisort': 'timestamp',
         'aiuser': user_name,
         'format': 'json',
-        'ailimit': 10,  
+        'ailimit': 1,  
         'aidir': 'descending'
     }
 
     response = requests.get(api_url, params=params)
     data = response.json()
-
-    recent_uploads = []
+    last_upload = []
+    lat = None
+    long = None
     if 'query' in data and 'allimages' in data['query']:
         for upload in data['query']['allimages']:
             timestamp = upload['timestamp']
-            if is_recent_upload(timestamp):
+            if is_last_upload(timestamp):
                 page_title = upload['title']
+                print(f"Page title : {page_title}")
                 wiki_content = get_wiki_content(page_title)
                 if '{{Creator:Benoît Prieur}}' in wiki_content:
                     title = upload['name'].split('.')[0].replace('_', ' ')
                     url = f"https://commons.wikimedia.org/wiki/{page_title.replace(' ', '_')}"
-                    recent_uploads.append((title, url))
+                    last_upload.append(title)
+                    last_upload.append(url)
+                    return last_upload
                 else:
                     print(f"Image {page_title} skipped: Creator tag not found.")
             else:
                 break 
 
-    return recent_uploads
+    return last_upload
+
+instagram_username = 'yyyyy'
+instagram_password = 'yyyyyyyyyyyyyyy'
+cl = Client()
 
 
 '''
     main
 '''
-def main():
-    recent_uploads = get_recent_uploads('Benoît Prieur')
-    
-    if recent_uploads:
-        for title, url in recent_uploads:
+def main():    
+    last_upload = get_last_upload('Benoît Prieur')
+    if last_upload:
+        for title, url in last_upload:
             instagram_upload(title, url)
-    else:
-        print("main: no recent uploads to instagram.")
+        print("main: no upload to instagram.")
 
 if __name__ == '__main__':
     main()
