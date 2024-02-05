@@ -9,6 +9,6 @@ To install and run it:
 * ```pip install -r requirements.txt```
 * ```crontab -e```
 ```
-* * * * * [your_directory]/venv/bin/python3 [your_directory]/appTwitter.py>
-* * * * * [your_directory]/venv/bin/python3 [your_directory]/appInstagram.py>
+* * * * * [your_directory]/venv/bin/python3 [your_directory]/appTwitter.py
+0 1 * * * [your_directory]/venv/bin/python3 [your_directory]/appInstagram.py
 ```
