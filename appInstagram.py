@@ -136,8 +136,8 @@ def get_last_upload(user_name):
 
     return last_upload
 
-instagram_username = 'yyyyy'
-instagram_password = 'yyyyyyyyyyyyyyy'
+instagram_username = 'zzzzz'
+instagram_password = 'zzzzz'
 cl = Client()
 
 
@@ -147,8 +147,10 @@ cl = Client()
 def main():    
     last_upload = get_last_upload('Benoît Prieur')
     if last_upload:
-        for title, url in last_upload:
-            instagram_upload(title, url)
+        title = last_upload[0]
+        url = last_upload[1]
+        instagram_upload(title, url)
+    else:    
         print("main: no upload to instagram.")
 
 if __name__ == '__main__':
